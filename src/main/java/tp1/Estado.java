@@ -26,4 +26,9 @@ public class Estado {
     public int hashCode() {
         return chave;
     }
+
+    @Override
+    public String toString() {
+        return nome;
+    }
 }

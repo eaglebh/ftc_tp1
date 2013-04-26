@@ -1,24 +1,22 @@
 package tp1;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Automato {
     private Set<Estado> estados;
     private Set<Estado> estadosFinais;
-    private Set<Simbolo> alfabeto;
+    private List<Simbolo> alfabeto;
     private Estado estadoInicial;
     private Map<Transicao, Estado> funcoesTransicao;
 
     public Automato() {
+        this.funcoesTransicao = new HashMap<Transicao, Estado>();
     }
 
     public Automato(Automato automatoEntrada) {
         this.setEstados(new HashSet<Estado>(automatoEntrada.getEstados()));
         this.setEstadosFinais(new HashSet<Estado>(automatoEntrada.getEstadosFinais()));
-        this.setAlfabeto(new HashSet<Simbolo>(automatoEntrada.getAlfabeto()));
+        this.setAlfabeto(new ArrayList<Simbolo>(automatoEntrada.getAlfabeto()));
         this.setEstadoInicial(automatoEntrada.getEstadoInicial());
         this.setFuncoesTransicao( new HashMap<Transicao, Estado>(automatoEntrada.getFuncoesTransicao()));
     }
@@ -28,6 +26,7 @@ public class Automato {
         HashSet<Simbolo> alfabeto = new HashSet<Simbolo>(this.getAlfabeto());
         Set<Estado> estadosInatingiveis = new HashSet<Estado>(estados);
         while (!estadosInatingiveis.isEmpty()) {
+            estadosInatingiveis.addAll(estados);
             for (Estado estado : estados) {
                 boolean alcancado = false;
                 for (Simbolo simbolo : alfabeto) {
@@ -37,12 +36,11 @@ public class Automato {
                         break;
                     }
                 }
-                if(!alcancado) {
+                if(alcancado) {
                     estadosInatingiveis.remove(estado);
                 }
             }
             estados.removeAll(estadosInatingiveis);
-            estadosInatingiveis.addAll(estados);
         }
         this.setEstados(estados);
     }
@@ -63,11 +61,11 @@ public class Automato {
         this.estadosFinais = estadosFinais;
     }
 
-    public Set<Simbolo> getAlfabeto() {
+    public List<Simbolo> getAlfabeto() {
         return alfabeto;
     }
 
-    public void setAlfabeto(Set<Simbolo> alfabeto) {
+    public void setAlfabeto(List<Simbolo> alfabeto) {
         this.alfabeto = alfabeto;
     }
 

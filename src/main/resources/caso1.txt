@@ -1,0 +1,11 @@
+1 2 3 4 5 6 7 ; //estados
+0 1 ; //alfabeto
+2 3 , //transicoes (de 1, lendo 0, vai p/ 2 e de 1, lendo 1, vai p/ 3)
+1 3 , // (de 2, lendo 0, vai p/ 1 e de 2, lendo 1, vai p/ 3)
+4 3 ,
+5 6 ,
+5 7 ,
+7 6 ,
+5 7 ;
+1 ; //estado inicial
+4 6 ; //estados finais

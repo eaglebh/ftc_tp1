@@ -2,7 +2,7 @@ package tp1;
 
 public class Simbolo {
 
-    private static int chaveAtualGerada = 0;
+    private static int chaveAtualGerada = -1;
 
     private static synchronized int gerarChave() {
         ++chaveAtualGerada;
@@ -25,5 +25,10 @@ public class Simbolo {
     @Override
     public int hashCode() {
         return chave;
+    }
+
+    @Override
+    public String toString() {
+        return nome;
     }
 }

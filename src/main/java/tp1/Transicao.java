@@ -30,4 +30,17 @@ public class Transicao {
             return false;
         }
     }
+
+    @Override
+    public int hashCode() {
+        return this.estado.hashCode() ^ this.simbolo.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Transicao{" +
+            "estado=" + estado +
+            ", simbolo=" + simbolo +
+            '}';
+    }
 }
