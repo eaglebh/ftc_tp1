@@ -1,5 +1,6 @@
 package tp1;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -12,6 +13,14 @@ public class Automato {
     private Map<Transicao, Estado> funcoesTransicao;
 
     public Automato() {
+    }
+
+    public Automato(Automato automatoEntrada) {
+        this.setEstados(new HashSet<Estado>(automatoEntrada.getEstados()));
+        this.setEstadosFinais(new HashSet<Estado>(automatoEntrada.getEstadosFinais()));
+        this.setAlfabeto(new HashSet<Simbolo>(automatoEntrada.getAlfabeto()));
+        this.setEstadoInicial(automatoEntrada.getEstadoInicial());
+        this.setFuncoesTransicao( new HashMap<Transicao, Estado>(automatoEntrada.getFuncoesTransicao()));
     }
 
     void retiraEstadosInatingiveis() {
@@ -75,6 +84,10 @@ public class Automato {
     }
 
     public Estado aplicaFuncaoTransicao(Estado estado, Simbolo simbolo){
-        return this.funcoesTransicao.get(new Transicao(estado, simbolo));
+        return this.getFuncoesTransicao().get(new Transicao(estado, simbolo));
+    }
+
+    public Map<Transicao, Estado> getFuncoesTransicao() {
+        return funcoesTransicao;
     }
 }
