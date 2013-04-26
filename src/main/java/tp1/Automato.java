@@ -1,5 +1,6 @@
 package tp1;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,6 +12,30 @@ public class Automato {
     private Map<Transicao, Estado> funcoesTransicao;
 
     public Automato() {
+    }
+
+    void retiraEstadosInatingiveis() {
+        Set<Estado> estados = new HashSet<Estado>(this.getEstados());
+        HashSet<Simbolo> alfabeto = new HashSet<Simbolo>(this.getAlfabeto());
+        Set<Estado> estadosInatingiveis = new HashSet<Estado>(estados);
+        while (!estadosInatingiveis.isEmpty()) {
+            for (Estado estado : estados) {
+                boolean alcancado = false;
+                for (Simbolo simbolo : alfabeto) {
+                    Estado proximoEstado = this.aplicaFuncaoTransicao(estado, simbolo);
+                    if (proximoEstado != null) {
+                        alcancado = true;
+                        break;
+                    }
+                }
+                if(!alcancado) {
+                    estadosInatingiveis.remove(estado);
+                }
+            }
+            estados.removeAll(estadosInatingiveis);
+            estadosInatingiveis.addAll(estados);
+        }
+        this.setEstados(estados);
     }
 
     public Set<Estado> getEstados() {

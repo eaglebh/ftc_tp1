@@ -1,6 +1,5 @@
 package tp1;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -54,26 +53,7 @@ public class App {
         Automato automatoEntrada = new Automato();
 
         // elimina todos os estados inatingiveis
-        Set<Estado> estados = new HashSet<Estado>(automatoEntrada.getEstados());
-        HashSet<Simbolo> alfabeto = new HashSet<Simbolo>(automatoEntrada.getAlfabeto());
-        boolean finalizado = false;
-        while (!finalizado) {
-            Set<Estado> estadosInatingiveis = new HashSet<Estado>(estados);
-            for (Estado estado : estados) {
-                boolean alcancado = false;
-                for (Simbolo simbolo : alfabeto) {
-                    Estado proximoEstado = automatoEntrada.aplicaFuncaoTransicao(estado, simbolo);
-                    if (proximoEstado != null) {
-                        alcancado = true;
-                        break;
-                    }
-                }
-                if(!alcancado) {
-                    estadosInatingiveis.remove(estado);
-                }
-            }
-        }
-
+        automatoEntrada.retiraEstadosInatingiveis();
 
         // cria S0 com dois conjuntos : iniciais e finais
 
