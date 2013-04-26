@@ -17,92 +17,9 @@ public class App {
 
         // elimina todos os estados inatingiveis
         automatoEntrada.retiraEstadosInatingiveis();
-        minimizaEstados(conjuntoMinimizavel, automatoEntrada);
+        automatoEntrada.minimizaEstados(conjuntoMinimizavel);
     }
 
-    private static Automato minimizaEstados(Set<Set<Estado>> conjuntoMinimizavel, Automato automatoEntrada) {
-        Set<Set<Estado>> resultadoParcial;// cria S0 com dois conjuntos : nao-finais e finais
-        resultadoParcial = new HashSet<Set<Estado>>();
-        Set<Estado> estadosNaoFinais = automatoEntrada.getEstados();
-        estadosNaoFinais.removeAll(automatoEntrada.getEstadosFinais());
-        resultadoParcial.add(estadosNaoFinais);
-        resultadoParcial.add(automatoEntrada.getEstadosFinais());
-
-        while (!resultadoParcial.equals(conjuntoMinimizavel)) {
-            conjuntoMinimizavel = new HashSet<Set<Estado>>(resultadoParcial);
-            resultadoParcial.clear();
-
-            // para cada conjunto A de Sn faça
-            for (Set<Estado> conjunto : conjuntoMinimizavel) {
-                // repita ate C = {}
-                // se o conjunto tem mais de um estado então, enquanto o conjunto tiver mais de um estado
-                while (conjunto.size() > 1) {
-                    // escolha e de C
-                    Estado estadoEscolhido = conjunto.iterator().next();
-                    // Y = {e}
-                    // coloque e no agrupamento novo de estados
-                    Set<Estado> estadosAgrupados = new HashSet<Estado>();
-                    estadosAgrupados.add(estadoEscolhido);
-                    // para cada d de C - {e}
-                    Set<Estado> estadosRestantesConj = new HashSet<Estado>(conjunto);
-                    estadosRestantesConj.remove(estadoEscolhido);
-                    for (Estado estadoD : estadosRestantesConj) {
-                        boolean agrupa = true;
-                        for (Simbolo simbolo : automatoEntrada.getAlfabeto()) {
-                            // verifique se e vai para o mesmo conjunto dos outros do mesmo estado
-                            Estado estadoAtingidoPorEscolhido = automatoEntrada.aplicaFuncaoTransicao(estadoEscolhido, simbolo);
-                            Estado estadoAtingidoPorD = automatoEntrada.aplicaFuncaoTransicao(estadoD, simbolo);
-                            if (!isEstadosMesmoConjunto(conjuntoMinimizavel, estadoAtingidoPorEscolhido, estadoAtingidoPorD)) {
-                                // senao, deve fazer parte de outro conjunto novo
-                                agrupa = false;
-                                break;
-                            }
-                        }
-                        if (agrupa) {
-                            // Y = Y U {d}
-                            estadosAgrupados.add(estadoD);
-                        }
-                    }
-                    // C = C - Y
-                    conjuntoMinimizavel.removeAll(estadosAgrupados);
-
-                    // R = R U {Y}
-                    Set<Estado> conjuntoAgrupado = new HashSet<Estado>();
-                    conjuntoAgrupado.addAll(estadosAgrupados);
-                    resultadoParcial.add(conjuntoAgrupado);
-                }
-            }
-        }
-
-        Automato automatoSaida = new Automato(automatoEntrada);
-        Set<Estado> estadosSaida = new HashSet<Estado>();
-        for (Set<Estado> estados : conjuntoMinimizavel) {
-            Estado novoEstado = criaEstadoDeConjunto(estados);
-            estadosSaida.add(novoEstado);
-        }
-        // E' = S
-        automatoSaida.setEstados(estadosSaida);
-
-        // i' = conjunto em S que contém i
-        Estado novoEstadoInicial = encontraConjuntoDoEstado(conjuntoMinimizavel, automatoEntrada.getEstadoInicial());
-        automatoSaida.setEstadoInicial(novoEstadoInicial);
-
-        // F' =
-
-        return automatoSaida;
-    }
-
-    private static Estado criaEstadoDeConjunto(Set<Estado> estados) {
-        StringBuilder novoNome = new StringBuilder();
-        for (Estado estado : estados) {
-            // vai concatenar com outro nome de estado anterior
-            if (novoNome.length() != 0) {
-                novoNome.append('_');
-            }
-            novoNome.append(estado.getNome());
-        }
-        return new Estado(novoNome.toString());
-    }
 
     public static Automato leAutomatoDoArquivo() {
         Automato novoAutomato = new Automato();
@@ -136,41 +53,20 @@ public class App {
         String[] estadosFinaisStr = linha.split(" ");
         Set<Estado> estadosFinais = new HashSet<Estado>();
         for(String estadoFinalStr : estadosFinaisStr) {
-            Estado estadoFinal = getEstadoPeloNome(novoAutomato, estadoFinalStr);
+            Estado estadoFinal = novoAutomato.getEstadoPeloNome(estadoFinalStr);
             estadosFinais.add(estadoFinal);
         }
         novoAutomato.setEstadosFinais(estadosFinais);
     }
 
     private static void preencheEstadoInicial(Automato novoAutomato, String linha) {
-        Estado estadoInicial = getEstadoPeloNome(novoAutomato, linha.split(" ")[0]);
+        Estado estadoInicial = novoAutomato.getEstadoPeloNome(linha.split(" ")[0]);
         novoAutomato.setEstadoInicial(estadoInicial);
-    }
-
-    private static Estado encontraConjuntoDoEstado(Set<Set<Estado>> conjuntoMinimizavel, Estado estadoInicial) {
-        for (Set<Estado> estados : conjuntoMinimizavel) {
-            if (estados.contains(estadoInicial)) {
-                return criaEstadoDeConjunto(estados);
-            }
-        }
-        return null;
-    }
-
-    private static boolean isEstadosMesmoConjunto(Set<Set<Estado>> conjuntoMinimizavel, Estado estadoAtingidoPorEscolhido, Estado estadoAtingidoPorD) {
-        Set<Estado> grupoEstados = new HashSet<Estado>();
-        grupoEstados.add(estadoAtingidoPorEscolhido);
-        grupoEstados.add(estadoAtingidoPorD);
-        for (Set<Estado> estados : conjuntoMinimizavel) {
-            if (estados.containsAll(grupoEstados)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public static int preencheEstados(Automato aut, String estados) {
         String[] arrayEstados = estados.split(" ");
-        Set conjuntoEstados = new HashSet();
+        Set<Estado> conjuntoEstados = new HashSet<Estado>();
         for (String estado : arrayEstados) {
             if (estado.contains(";")) {
                 break;
@@ -196,38 +92,16 @@ public class App {
     }
 
     public static void preencheTransicoes(Automato aut, String linha, int numEstado) {
-        Estado estado = getEstadoPeloNome(aut, String.valueOf(numEstado));
+        Estado estado = aut.getEstadoPeloNome(String.valueOf(numEstado));
 
         String[] estadosFinais = linha.split(" ");
 
         for(int count = 0; count < aut.getAlfabeto().size(); count++){
-            Estado estadoFinal = getEstadoPeloNome(aut, estadosFinais[count]);
+            Estado estadoFinal = aut.getEstadoPeloNome(estadosFinais[count]);
             Simbolo simbolo1 = aut.getAlfabeto().get(count);
             Transicao transicao = new Transicao(estado, simbolo1);
             aut.getFuncoesTransicao().put(transicao, estadoFinal);
         }
     }
 
-    public static Estado getEstadoPeloNome(Automato aut, String nomeEstado) {
-        Estado estado = null;
-        for (Estado est : aut.getEstados()) {
-            if (est.getNome().equals(nomeEstado)) {
-                estado = est;
-                break;
-            }
-        }
-        return estado;
-    }
-
-    public static Simbolo getSimboloPeloNome(Automato aut, String nomeSimbolo) {
-        Simbolo simbolo = null;
-
-        for (Simbolo s : aut.getAlfabeto()) {
-            if (s.getNome().equals(nomeSimbolo)) {
-                simbolo = s;
-                break;
-            }
-        }
-        return simbolo;
-    }
 }
