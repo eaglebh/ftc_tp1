@@ -1,7 +1,9 @@
 package tp1;
 
+import java.io.FileReader;
 import java.util.HashSet;
 import java.util.Set;
+import java.io.*;
 
 public class App {
 
@@ -10,11 +12,13 @@ public class App {
         Set<Set<Estado>> conjuntoMinimizavel = null;
         Automato automatoEntrada = new Automato();
 
-
         // elimina todos os estados inatingiveis
         automatoEntrada.retiraEstadosInatingiveis();
+        minimizaEstados(conjuntoMinimizavel, automatoEntrada);
+    }
 
-        // cria S0 com dois conjuntos : nao-finais e finais
+    private static Automato minimizaEstados(Set<Set<Estado>> conjuntoMinimizavel, Automato automatoEntrada) {
+        Set<Set<Estado>> resultadoParcial;// cria S0 com dois conjuntos : nao-finais e finais
         resultadoParcial = new HashSet<Set<Estado>>();
         Set<Estado> estadosNaoFinais = automatoEntrada.getEstados();
         estadosNaoFinais.removeAll(automatoEntrada.getEstadosFinais());
@@ -81,6 +85,8 @@ public class App {
         automatoSaida.setEstadoInicial(novoEstadoInicial);
 
         // F' =
+
+        return automatoSaida;
     }
 
     private static Estado criaEstadoDeConjunto(Set<Estado> estados) {
@@ -93,6 +99,41 @@ public class App {
             novoNome.append(estado.getNome());
         }
         return new Estado(novoNome.toString());
+    }
+    public Automato leAutomatoDoArquivo() {
+        Automato novoAutomato = null;
+        try {
+            BufferedReader br = new BufferedReader(new FileReader("c:/bla.txt"));
+            String linha = br.readLine();
+            int quantidadeEstados = preencheEstados(novoAutomato, linha);
+
+            linha = br.readLine();
+            preencheAlfabeto(novoAutomato, linha);
+
+            for (int i = 1; i < quantidadeEstados; i++) {
+                linha = br.readLine();
+                preencheTransicao(novoAutomato, linha, i);
+            }
+            linha = br.readLine();
+            preencheEstadoInicial(novoAutomato, linha);
+
+            linha = br.readLine();
+            preencheEstadosFinais(novoAutomato, linha);
+            System.out.println(linha);
+            br.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        return novoAutomato;
+    }
+
+    private void preencheEstadosFinais(Automato novoAutomato, String linha) {
+        //To change body of created methods use File | Settings | File Templates.
+    }
+
+    private void preencheEstadoInicial(Automato novoAutomato, String linha) {
+        //To change body of created methods use File | Settings | File Templates.
     }
 
     private static Estado encontraConjuntoDoEstado(Set<Set<Estado>> conjuntoMinimizavel, Estado estadoInicial) {
@@ -116,5 +157,61 @@ public class App {
         return false;
     }
 
+    public int preencheEstados(Automato aut, String estados) {
+        String[] arrayEstados = estados.split(" ");
+        Set conjuntoEstados = new HashSet();
+        for (String estado : arrayEstados) {
+            Estado novoEstado = new Estado(estado);
+            conjuntoEstados.add(novoEstado);
+        }
+        aut.setEstados(conjuntoEstados);
+        return arrayEstados.length;
+    }
 
+    public void preencheAlfabeto(Automato aut, String alfabeto) {
+        String[] arraySimbolos = alfabeto.split(" ");
+        Set conjuntoAlfabeto = new HashSet();
+        for (String simbolo : arraySimbolos) {
+            Simbolo novoSimbolo = new Simbolo(simbolo);
+            conjuntoAlfabeto.add(novoSimbolo);
+        }
+        aut.setAlfabeto(conjuntoAlfabeto);
+    }
+
+    public void preencheTransicao(Automato aut, String linha, int numEstado) {
+        Estado estado = getEstadoPeloNome(aut, String.valueOf(numEstado));
+
+        String[] estadosFinais = linha.split(" ");
+
+        Estado estadoFinal1 = getEstadoPeloNome(aut, estadosFinais[0]);
+        Simbolo simbolo1 = getSimboloPeloNome(aut, "0");
+        Transicao transicao1 = new Transicao(estado, simbolo1);
+
+        Estado estadoFinal2 = getEstadoPeloNome(aut, estadosFinais[1]);
+        Simbolo simbolo2 = getSimboloPeloNome(aut, "1");
+        Transicao transicao2 = new Transicao(estado, simbolo2);
+    }
+
+    public Estado getEstadoPeloNome(Automato aut, String nomeEstado) {
+        Estado estado = null;
+        for (Estado est : aut.getEstados()) {
+            if (est.getNome().equals(nomeEstado)) {
+                estado = est;
+                break;
+            }
+        }
+        return estado;
+    }
+
+    public Simbolo getSimboloPeloNome(Automato aut, String nomeSimbolo) {
+        Simbolo simbolo = null;
+
+        for (Simbolo s : aut.getAlfabeto()) {
+            if (s.getNome().equals(nomeSimbolo)) {
+                simbolo = s;
+                break;
+            }
+        }
+        return simbolo;
+    }
 }
