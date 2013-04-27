@@ -16,14 +16,17 @@ public class App {
 
         // elimina todos os estados inatingiveis
         automatoEntrada.retiraEstadosInatingiveis();
+
+        Estado.reiniciarChave();
         Automato automatoSaida = automatoEntrada.minimizaEstados();
 
         System.out.print(automatoSaida.toText());
+        System.out.println(automatoSaida.toyUML());
     }
 
     public static Automato leAutomatoDoArquivo() {
         Automato novoAutomato = new Automato();
-        //Estado.reiniciarChave();
+
         try {
             BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\Pablo\\Google Drive\\ufmg\\ftc\\tp1\\target\\classes\\teste3.txt"));
             String linha = br.readLine();

@@ -21,10 +21,10 @@ public class Automato {
         this.setFuncoesTransicao(new HashMap<Transicao, Estado>(automatoEntrada.getFuncoesTransicao()));
     }
 
-    private Estado encontraConjuntoDoEstado(Set<List<Estado>> conjuntoMinimizavel, Estado estadoInicial) {
-        for (List<Estado> estados : conjuntoMinimizavel) {
-            if (estados.contains(estadoInicial)) {
-                return Estado.criaEstadoDeConjunto(estados);
+    private Estado extraiEstadoInicialDeEstados(List<Estado> conjuntoMinimizavel, Estado estadoInicial) {
+        for (Estado estadoAgrupado : conjuntoMinimizavel) {
+            if (estadoAgrupado.contains(estadoInicial)) {
+                return estadoAgrupado;
             }
         }
         return null;
@@ -114,7 +114,7 @@ public class Automato {
         // E' = S
         automatoSaida.setEstados(estadosSaida);
         // i' = conjunto em S que contém i
-        Estado novoEstadoInicial = this.encontraConjuntoDoEstado(conjuntoMinimizavel, this.getEstadoInicial());
+        Estado novoEstadoInicial = this.extraiEstadoInicialDeEstados(estadosSaida, this.getEstadoInicial());
         automatoSaida.setEstadoInicial(novoEstadoInicial);
         // F' = {C E S|C conj-prop F}
         automatoSaida.setEstadosFinais(estadosFinaisSaida);
@@ -310,6 +310,44 @@ public class Automato {
             estadosFinaisStringBuilder + "; //estados finais";
     }
 
+    public String toyUML() {
+        StringBuilder transicoesStringBuilder = new StringBuilder("\n");
+        for (Estado estado : this.estados) {
+            for (Simbolo simbolo : this.alfabeto) {
+                Transicao transicao = new Transicao(estado, simbolo);
+                Estado estadoDestino = this.funcoesTransicao.get(transicao);
+                transicoesStringBuilder.append(getyUMLDeEstado(estado.toString()));
+                transicoesStringBuilder.append('-');
+                transicoesStringBuilder.append(simbolo.getNome());
+                transicoesStringBuilder.append('>');
+                transicoesStringBuilder.append(getyUMLDeEstado(estadoDestino.toString()));
+                transicoesStringBuilder.append("\n");
+            }
+        }
+
+        transicoesStringBuilder.append(getyUMLDeEstado("start"));
+        transicoesStringBuilder.append("->");
+        transicoesStringBuilder.append(getyUMLDeEstado(this.estadoInicial.toString()));
+        transicoesStringBuilder.append("\n");
+
+        for (Estado estado : this.estadosFinais) {
+            transicoesStringBuilder.append(getyUMLDeEstado(estado.toString()));
+            transicoesStringBuilder.append("->");
+            transicoesStringBuilder.append("(end)");
+            transicoesStringBuilder.append("\n");
+        }
+
+        return transicoesStringBuilder.toString();
+    }
+
+    private String getyUMLDeEstado(String nome) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append('(');
+        stringBuilder.append(nome);
+        stringBuilder.append(')');
+
+        return stringBuilder.toString();
+    }
 
     public Estado getEstadoPeloNome(String nomeEstado) {
         Estado estado = null;

@@ -61,7 +61,7 @@ public class Estado {
 
     @Override
     public String toString() {
-        return nome;
+        return String.valueOf(chave);
     }
 
     public Estado getEstadoRepresentativo() {
