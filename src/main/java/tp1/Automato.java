@@ -18,7 +18,7 @@ public class Automato {
         this.setEstadosFinais(new HashSet<Estado>(automatoEntrada.getEstadosFinais()));
         this.setAlfabeto(new ArrayList<Simbolo>(automatoEntrada.getAlfabeto()));
         this.setEstadoInicial(automatoEntrada.getEstadoInicial());
-        this.setFuncoesTransicao( new HashMap<Transicao, Estado>(automatoEntrada.getFuncoesTransicao()));
+        this.setFuncoesTransicao(new HashMap<Transicao, Estado>(automatoEntrada.getFuncoesTransicao()));
     }
 
     private Estado encontraConjuntoDoEstado(Set<Set<Estado>> conjuntoMinimizavel, Estado estadoInicial) {
@@ -53,7 +53,8 @@ public class Automato {
         return simbolo;
     }
 
-    public Automato minimizaEstados(Set<Set<Estado>> conjuntoMinimizavel) {
+    public Automato minimizaEstados() {
+        Set<Set<Estado>> conjuntoMinimizavel = null;
         Set<Set<Estado>> resultadoParcial;// cria S0 com dois conjuntos : nao-finais e finais
         resultadoParcial = new HashSet<Set<Estado>>();
         Set<Estado> estadosNaoFinais = this.getEstados();
@@ -67,17 +68,18 @@ public class Automato {
 
             // para cada conjunto A de Sn faça
             for (Set<Estado> conjunto : conjuntoMinimizavel) {
+                Set<Estado> subConjunto = new HashSet<Estado>(conjunto);
                 // repita ate C = {}
                 // se o conjunto tem mais de um estado então, enquanto o conjunto tiver mais de um estado
-                while (conjunto.size() > 1) {
+                while (subConjunto.size() > 0) {
                     // escolha e de C
-                    Estado estadoEscolhido = conjunto.iterator().next();
+                    Estado estadoEscolhido = subConjunto.iterator().next();
                     // Y = {e}
                     // coloque e no agrupamento novo de estados
                     Set<Estado> estadosAgrupados = new HashSet<Estado>();
                     estadosAgrupados.add(estadoEscolhido);
                     // para cada d de C - {e}
-                    Set<Estado> estadosRestantesConj = new HashSet<Estado>(conjunto);
+                    Set<Estado> estadosRestantesConj = new HashSet<Estado>(subConjunto);
                     estadosRestantesConj.remove(estadoEscolhido);
                     for (Estado estadoD : estadosRestantesConj) {
                         boolean agrupa = true;
@@ -97,7 +99,7 @@ public class Automato {
                         }
                     }
                     // C = C - Y
-                    conjuntoMinimizavel.removeAll(estadosAgrupados);
+                    subConjunto.removeAll(estadosAgrupados);
 
                     // R = R U {Y}
                     Set<Estado> conjuntoAgrupado = new HashSet<Estado>();
@@ -107,22 +109,67 @@ public class Automato {
             }
         }
 
+        Set<Estado> estadosSaida = criaEstadosDeConjuntos(conjuntoMinimizavel);
+        Set<Estado> estadosFinaisSaida = extraiEstadosFinaisDeEstados(estadosSaida);
+        Map<Transicao, Estado> funcoesTransicaoSaida = extraiTransicoes(estadosSaida);
+
         Automato automatoSaida = new Automato(this);
-        Set<Estado> estadosSaida = new HashSet<Estado>();
-        for (Set<Estado> estados : conjuntoMinimizavel) {
-            Estado novoEstado = Estado.criaEstadoDeConjunto(estados);
-            estadosSaida.add(novoEstado);
-        }
         // E' = S
         automatoSaida.setEstados(estadosSaida);
-
         // i' = conjunto em S que contém i
         Estado novoEstadoInicial = this.encontraConjuntoDoEstado(conjuntoMinimizavel, this.getEstadoInicial());
         automatoSaida.setEstadoInicial(novoEstadoInicial);
-
-        // F' =
+        // F' = {C E S|C conj-prop F}
+        automatoSaida.setEstadosFinais(estadosFinaisSaida);
+        // ft' : para todos C E S e E Alfabeto :
+        // ft'(C, a) = conjunto em S que contém ft(e, a) para algum e E C
+        automatoSaida.setFuncoesTransicao(funcoesTransicaoSaida);
 
         return automatoSaida;
+    }
+
+    private Set<Estado> criaEstadosDeConjuntos(Set<Set<Estado>> conjuntos) {
+        Set<Estado> estados = new HashSet<Estado>();
+        for (Set<Estado> estadoAgrupado : conjuntos) {
+            Estado novoEstado = Estado.criaEstadoDeConjunto(estadoAgrupado);
+            estados.add(novoEstado);
+        }
+
+        return estados;
+    }
+
+    private Set<Estado> extraiEstadosFinaisDeEstados(Set<Estado> estadosConjunto) {
+        Set<Estado> estadosFinais = new HashSet<Estado>();
+
+        for (Estado estadoAgrupado : estadosConjunto) {
+            for (Estado estadoFinal : this.getEstadosFinais()) {
+                if (estadoAgrupado.contains(estadoFinal)) {
+                    estadosFinais.add(estadoAgrupado);
+                    break;
+                }
+            }
+        }
+
+        return estadosFinais;
+    }
+
+    private Map<Transicao, Estado> extraiTransicoes(Set<Estado> estadosConjunto) {
+        Map<Transicao, Estado> funcoesTransicao = new HashMap<Transicao, Estado>();
+
+        for (Estado estadoAgrupado : estadosConjunto) {
+            for (Simbolo simbolo : this.alfabeto) {
+                Transicao transicao = new Transicao(estadoAgrupado.getEstadoRepresentativo(), simbolo);
+                Estado proxEstado = this.funcoesTransicao.get(transicao);
+                for (Estado estadoConjunto : estadosConjunto) {
+                    if (estadoConjunto.contains(proxEstado)) {
+                        funcoesTransicao.put(new Transicao(estadoAgrupado, simbolo), estadoConjunto);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return funcoesTransicao;
     }
 
     private boolean isEstadosMesmoConjunto(Set<Set<Estado>> conjuntoMinimizavel, Estado estadoAtingidoPorEscolhido, Estado estadoAtingidoPorD) {
@@ -153,7 +200,7 @@ public class Automato {
                         break;
                     }
                 }
-                if(alcancado) {
+                if (alcancado) {
                     estadosInatingiveis.remove(estado);
                 }
             }
@@ -198,7 +245,7 @@ public class Automato {
         this.funcoesTransicao = funcoesTransicao;
     }
 
-    public Estado aplicaFuncaoTransicao(Estado estado, Simbolo simbolo){
+    public Estado aplicaFuncaoTransicao(Estado estado, Simbolo simbolo) {
         return this.getFuncoesTransicao().get(new Transicao(estado, simbolo));
     }
 

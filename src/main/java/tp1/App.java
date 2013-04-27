@@ -12,12 +12,11 @@ public class App {
 
     public static void main(String[] args) {
         Set<Set<Estado>> resultadoParcial;
-        Set<Set<Estado>> conjuntoMinimizavel = null;
         Automato automatoEntrada = leAutomatoDoArquivo();
 
         // elimina todos os estados inatingiveis
         automatoEntrada.retiraEstadosInatingiveis();
-        automatoEntrada.minimizaEstados(conjuntoMinimizavel);
+        automatoEntrada.minimizaEstados();
     }
 
 
@@ -33,7 +32,7 @@ public class App {
 
             for (int i = 0; i < quantidadeEstados; i++) {
                 linha = br.readLine();
-                preencheTransicoes(novoAutomato, linha, i+1);
+                preencheTransicoes(novoAutomato, linha, i + 1);
             }
             linha = br.readLine();
             preencheEstadoInicial(novoAutomato, linha);
@@ -52,7 +51,10 @@ public class App {
     private static void preencheEstadosFinais(Automato novoAutomato, String linha) {
         String[] estadosFinaisStr = linha.split(" ");
         Set<Estado> estadosFinais = new HashSet<Estado>();
-        for(String estadoFinalStr : estadosFinaisStr) {
+        for (String estadoFinalStr : estadosFinaisStr) {
+            if (estadoFinalStr.contains(";")) {
+                break;
+            }
             Estado estadoFinal = novoAutomato.getEstadoPeloNome(estadoFinalStr);
             estadosFinais.add(estadoFinal);
         }
@@ -67,11 +69,11 @@ public class App {
     public static int preencheEstados(Automato aut, String estados) {
         String[] arrayEstados = estados.split(" ");
         Set<Estado> conjuntoEstados = new HashSet<Estado>();
-        for (String estado : arrayEstados) {
-            if (estado.contains(";")) {
+        for (String nome : arrayEstados) {
+            if (nome.contains(";")) {
                 break;
             }
-            Estado novoEstado = new Estado(estado);
+            Estado novoEstado = Estado.criaEstado(nome);
             conjuntoEstados.add(novoEstado);
         }
         aut.setEstados(conjuntoEstados);
@@ -96,7 +98,7 @@ public class App {
 
         String[] estadosFinais = linha.split(" ");
 
-        for(int count = 0; count < aut.getAlfabeto().size(); count++){
+        for (int count = 0; count < aut.getAlfabeto().size(); count++) {
             Estado estadoFinal = aut.getEstadoPeloNome(estadosFinais[count]);
             Simbolo simbolo1 = aut.getAlfabeto().get(count);
             Transicao transicao = new Transicao(estado, simbolo1);
