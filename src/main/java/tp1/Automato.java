@@ -3,8 +3,8 @@ package tp1;
 import java.util.*;
 
 public class Automato {
-    private Set<Estado> estados;
-    private Set<Estado> estadosFinais;
+    private List<Estado> estados;
+    private List<Estado> estadosFinais;
     private List<Simbolo> alfabeto;
     private Estado estadoInicial;
     private Map<Transicao, Estado> funcoesTransicao;
@@ -14,15 +14,15 @@ public class Automato {
     }
 
     public Automato(Automato automatoEntrada) {
-        this.setEstados(new HashSet<Estado>(automatoEntrada.getEstados()));
-        this.setEstadosFinais(new HashSet<Estado>(automatoEntrada.getEstadosFinais()));
+        this.setEstados(new ArrayList<Estado>(automatoEntrada.getEstados()));
+        this.setEstadosFinais(new ArrayList<Estado>(automatoEntrada.getEstadosFinais()));
         this.setAlfabeto(new ArrayList<Simbolo>(automatoEntrada.getAlfabeto()));
         this.setEstadoInicial(automatoEntrada.getEstadoInicial());
         this.setFuncoesTransicao(new HashMap<Transicao, Estado>(automatoEntrada.getFuncoesTransicao()));
     }
 
-    private Estado encontraConjuntoDoEstado(Set<Set<Estado>> conjuntoMinimizavel, Estado estadoInicial) {
-        for (Set<Estado> estados : conjuntoMinimizavel) {
+    private Estado encontraConjuntoDoEstado(Set<List<Estado>> conjuntoMinimizavel, Estado estadoInicial) {
+        for (List<Estado> estados : conjuntoMinimizavel) {
             if (estados.contains(estadoInicial)) {
                 return Estado.criaEstadoDeConjunto(estados);
             }
@@ -30,15 +30,8 @@ public class Automato {
         return null;
     }
 
-    public Estado getEstadoPeloNome(String nomeEstado) {
-        Estado estado = null;
-        for (Estado est : this.getEstados()) {
-            if (est.getNome().equals(nomeEstado)) {
-                estado = est;
-                break;
-            }
-        }
-        return estado;
+    public Estado getEstadoPelaOrdem(int indice) {
+        return (indice < 0 || indice >= this.getEstados().size()) ? null : this.getEstados().get(indice);
     }
 
     public static Simbolo getSimboloPeloNome(Automato aut, String nomeSimbolo) {
@@ -54,21 +47,23 @@ public class Automato {
     }
 
     public Automato minimizaEstados() {
-        Set<Set<Estado>> conjuntoMinimizavel = null;
-        Set<Set<Estado>> resultadoParcial;// cria S0 com dois conjuntos : nao-finais e finais
-        resultadoParcial = new HashSet<Set<Estado>>();
-        Set<Estado> estadosNaoFinais = this.getEstados();
+        Set<List<Estado>> conjuntoMinimizavel = null;
+        Set<List<Estado>> resultadoParcial;// cria S0 com dois conjuntos : nao-finais e finais
+        resultadoParcial = new HashSet<List<Estado>>();
+        List<Estado> estadosNaoFinais = this.getEstados();
         estadosNaoFinais.removeAll(this.getEstadosFinais());
         resultadoParcial.add(estadosNaoFinais);
         resultadoParcial.add(this.getEstadosFinais());
 
+        int contadorIteracoes = 0;
         while (!resultadoParcial.equals(conjuntoMinimizavel)) {
-            conjuntoMinimizavel = new HashSet<Set<Estado>>(resultadoParcial);
+            conjuntoMinimizavel = new HashSet<List<Estado>>(resultadoParcial);
+            imprimeConjuntoMinimizavel(conjuntoMinimizavel, contadorIteracoes);
             resultadoParcial.clear();
 
             // para cada conjunto A de Sn faça
-            for (Set<Estado> conjunto : conjuntoMinimizavel) {
-                Set<Estado> subConjunto = new HashSet<Estado>(conjunto);
+            for (List<Estado> conjunto : conjuntoMinimizavel) {
+                List<Estado> subConjunto = new ArrayList<Estado>(conjunto);
                 // repita ate C = {}
                 // se o conjunto tem mais de um estado então, enquanto o conjunto tiver mais de um estado
                 while (subConjunto.size() > 0) {
@@ -76,7 +71,7 @@ public class Automato {
                     Estado estadoEscolhido = subConjunto.iterator().next();
                     // Y = {e}
                     // coloque e no agrupamento novo de estados
-                    Set<Estado> estadosAgrupados = new HashSet<Estado>();
+                    List<Estado> estadosAgrupados = new ArrayList<Estado>();
                     estadosAgrupados.add(estadoEscolhido);
                     // para cada d de C - {e}
                     Set<Estado> estadosRestantesConj = new HashSet<Estado>(subConjunto);
@@ -102,15 +97,17 @@ public class Automato {
                     subConjunto.removeAll(estadosAgrupados);
 
                     // R = R U {Y}
-                    Set<Estado> conjuntoAgrupado = new HashSet<Estado>();
+                    List<Estado> conjuntoAgrupado = new ArrayList<Estado>();
                     conjuntoAgrupado.addAll(estadosAgrupados);
                     resultadoParcial.add(conjuntoAgrupado);
                 }
             }
+            ++contadorIteracoes;
         }
+        imprimeConjuntoMinimizavel(conjuntoMinimizavel, contadorIteracoes);
 
-        Set<Estado> estadosSaida = criaEstadosDeConjuntos(conjuntoMinimizavel);
-        Set<Estado> estadosFinaisSaida = extraiEstadosFinaisDeEstados(estadosSaida);
+        List<Estado> estadosSaida = criaEstadosDeConjuntos(conjuntoMinimizavel);
+        List<Estado> estadosFinaisSaida = extraiEstadosFinaisDeEstados(estadosSaida);
         Map<Transicao, Estado> funcoesTransicaoSaida = extraiTransicoes(estadosSaida);
 
         Automato automatoSaida = new Automato(this);
@@ -128,9 +125,31 @@ public class Automato {
         return automatoSaida;
     }
 
-    private Set<Estado> criaEstadosDeConjuntos(Set<Set<Estado>> conjuntos) {
-        Set<Estado> estados = new HashSet<Estado>();
-        for (Set<Estado> estadoAgrupado : conjuntos) {
+    private void imprimeConjuntoMinimizavel(Set<List<Estado>> conjuntoMinimizavel, int iteracao) {
+        StringBuilder conjuntosTextual = new StringBuilder();
+        conjuntosTextual.append('S');
+        conjuntosTextual.append(iteracao);
+        conjuntosTextual.append(": {");
+        for (List<Estado> conjunto : conjuntoMinimizavel) {
+            conjuntosTextual.append('{');
+            Iterator<Estado> estadoIterator = conjunto.iterator();
+            Estado estado = estadoIterator.next();
+            conjuntosTextual.append(estado);
+            while (estadoIterator.hasNext()) {
+                conjuntosTextual.append(',');
+                estado = estadoIterator.next();
+                conjuntosTextual.append(estado);
+            }
+            conjuntosTextual.append('}');
+        }
+        conjuntosTextual.append('}');
+
+        System.out.println(conjuntosTextual.toString());
+    }
+
+    private List<Estado> criaEstadosDeConjuntos(Set<List<Estado>> conjuntos) {
+        List<Estado> estados = new ArrayList<Estado>();
+        for (List<Estado> estadoAgrupado : conjuntos) {
             Estado novoEstado = Estado.criaEstadoDeConjunto(estadoAgrupado);
             estados.add(novoEstado);
         }
@@ -138,8 +157,8 @@ public class Automato {
         return estados;
     }
 
-    private Set<Estado> extraiEstadosFinaisDeEstados(Set<Estado> estadosConjunto) {
-        Set<Estado> estadosFinais = new HashSet<Estado>();
+    private List<Estado> extraiEstadosFinaisDeEstados(List<Estado> estadosConjunto) {
+        List<Estado> estadosFinais = new ArrayList<Estado>();
 
         for (Estado estadoAgrupado : estadosConjunto) {
             for (Estado estadoFinal : this.getEstadosFinais()) {
@@ -153,7 +172,7 @@ public class Automato {
         return estadosFinais;
     }
 
-    private Map<Transicao, Estado> extraiTransicoes(Set<Estado> estadosConjunto) {
+    private Map<Transicao, Estado> extraiTransicoes(List<Estado> estadosConjunto) {
         Map<Transicao, Estado> funcoesTransicao = new HashMap<Transicao, Estado>();
 
         for (Estado estadoAgrupado : estadosConjunto) {
@@ -172,11 +191,11 @@ public class Automato {
         return funcoesTransicao;
     }
 
-    private boolean isEstadosMesmoConjunto(Set<Set<Estado>> conjuntoMinimizavel, Estado estadoAtingidoPorEscolhido, Estado estadoAtingidoPorD) {
+    private boolean isEstadosMesmoConjunto(Set<List<Estado>> conjuntoMinimizavel, Estado estadoAtingidoPorEscolhido, Estado estadoAtingidoPorD) {
         Set<Estado> grupoEstados = new HashSet<Estado>();
         grupoEstados.add(estadoAtingidoPorEscolhido);
         grupoEstados.add(estadoAtingidoPorD);
-        for (Set<Estado> estados : conjuntoMinimizavel) {
+        for (List<Estado> estados : conjuntoMinimizavel) {
             if (estados.containsAll(grupoEstados)) {
                 return true;
             }
@@ -186,42 +205,42 @@ public class Automato {
 
 
     void retiraEstadosInatingiveis() {
-        Set<Estado> estados = new HashSet<Estado>(this.getEstados());
-        HashSet<Simbolo> alfabeto = new HashSet<Simbolo>(this.getAlfabeto());
+        List<Estado> estados = new ArrayList<Estado>(this.getEstados());
+        Iterable<Simbolo> alfabeto = new HashSet<Simbolo>(this.getAlfabeto());
         Set<Estado> estadosInatingiveis = new HashSet<Estado>(estados);
+        estadosInatingiveis.remove(this.estadoInicial);
         while (!estadosInatingiveis.isEmpty()) {
-            estadosInatingiveis.addAll(estados);
             for (Estado estado : estados) {
-                boolean alcancado = false;
                 for (Simbolo simbolo : alfabeto) {
                     Estado proximoEstado = this.aplicaFuncaoTransicao(estado, simbolo);
                     if (proximoEstado != null) {
-                        alcancado = true;
-                        break;
+                        estadosInatingiveis.remove(proximoEstado);
                     }
-                }
-                if (alcancado) {
-                    estadosInatingiveis.remove(estado);
                 }
             }
             estados.removeAll(estadosInatingiveis);
+            if (!estadosInatingiveis.isEmpty()) {
+                estadosInatingiveis.clear();
+                estadosInatingiveis.addAll(estados);
+                estadosInatingiveis.remove(this.estadoInicial);
+            }
         }
         this.setEstados(estados);
     }
 
-    public Set<Estado> getEstados() {
+    public List<Estado> getEstados() {
         return estados;
     }
 
-    public void setEstados(Set<Estado> estados) {
+    public void setEstados(List<Estado> estados) {
         this.estados = estados;
     }
 
-    public Set<Estado> getEstadosFinais() {
+    public List<Estado> getEstadosFinais() {
         return estadosFinais;
     }
 
-    public void setEstadosFinais(Set<Estado> estadosFinais) {
+    public void setEstadosFinais(List<Estado> estadosFinais) {
         this.estadosFinais = estadosFinais;
     }
 
@@ -251,5 +270,55 @@ public class Automato {
 
     public Map<Transicao, Estado> getFuncoesTransicao() {
         return funcoesTransicao;
+    }
+
+    public String toText() {
+        StringBuilder estadosStringBuilder = new StringBuilder();
+        for (Estado estado : this.estados) {
+            estadosStringBuilder.append(estado);
+            estadosStringBuilder.append(' ');
+        }
+
+        StringBuilder alfabetoStringBuilder = new StringBuilder();
+        for (Simbolo simbolo : this.alfabeto) {
+            alfabetoStringBuilder.append(simbolo);
+            alfabetoStringBuilder.append(' ');
+        }
+
+        StringBuilder funcoesTransicaoStringBuilder = new StringBuilder();
+        for (Estado estado : this.estados) {
+            for (Simbolo simbolo : this.alfabeto) {
+                Transicao transicao = new Transicao(estado, simbolo);
+                Estado estadoDestino = this.funcoesTransicao.get(transicao);
+                funcoesTransicaoStringBuilder.append(estadoDestino);
+                funcoesTransicaoStringBuilder.append(' ');
+            }
+            funcoesTransicaoStringBuilder.append(",\n");
+        }
+        funcoesTransicaoStringBuilder.delete(funcoesTransicaoStringBuilder.length() - 2, funcoesTransicaoStringBuilder.length());
+
+        StringBuilder estadosFinaisStringBuilder = new StringBuilder();
+        for (Estado estado : this.estadosFinais) {
+            estadosFinaisStringBuilder.append(estado);
+            estadosFinaisStringBuilder.append(' ');
+        }
+
+        return estadosStringBuilder.toString() + "; //estados\n" +
+            alfabetoStringBuilder + "; //alfabeto\n" +
+            funcoesTransicaoStringBuilder + "; //transicoes\n" +
+            estadoInicial + "; //estado inicial\n" +
+            estadosFinaisStringBuilder + "; //estados finais";
+    }
+
+
+    public Estado getEstadoPeloNome(String nomeEstado) {
+        Estado estado = null;
+        for (Estado est : this.getEstados()) {
+            if (est.getNome().equals(nomeEstado)) {
+                estado = est;
+                break;
+            }
+        }
+        return estado;
     }
 }

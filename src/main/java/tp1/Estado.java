@@ -1,6 +1,8 @@
 package tp1;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class Estado {
@@ -14,7 +16,7 @@ public class Estado {
 
     private int chave;
     private String nome;
-    private Set<Estado> conjunto = null;
+    private List<Estado> conjunto = null;
 
     private Estado(String nome) {
         this.chave = gerarChave();
@@ -22,7 +24,7 @@ public class Estado {
         this.nome = nome;
     }
 
-    private Estado(Set<Estado> conjunto) {
+    private Estado(List<Estado> conjunto) {
         StringBuilder novoNome = new StringBuilder();
         for (Estado estado : conjunto) {
             // vai concatenar com outro nome de estado anterior
@@ -33,14 +35,14 @@ public class Estado {
         }
         this.chave = gerarChave();
         this.nome = novoNome.toString();
-        this.conjunto = new HashSet<Estado>(conjunto);
+        this.conjunto = new ArrayList<Estado>(conjunto);
     }
 
     public static Estado criaEstado(String nome) {
         return new Estado(nome);
     }
 
-    public static Estado criaEstadoDeConjunto(Set<Estado> conjunto) {
+    public static Estado criaEstadoDeConjunto(List<Estado> conjunto) {
         return new Estado(conjunto);
     }
 
@@ -64,5 +66,9 @@ public class Estado {
 
     public Estado getEstadoRepresentativo() {
         return (this.conjunto == null || this.conjunto.isEmpty()) ? this : this.conjunto.iterator().next();
+    }
+
+    public static void reiniciarChave(){
+        chaveAtualGerada = 0;
     }
 }

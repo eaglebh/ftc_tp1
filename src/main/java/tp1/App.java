@@ -16,30 +16,44 @@ public class App {
 
         // elimina todos os estados inatingiveis
         automatoEntrada.retiraEstadosInatingiveis();
-        automatoEntrada.minimizaEstados();
-    }
+        Automato automatoSaida = automatoEntrada.minimizaEstados();
 
+        System.out.print(automatoSaida.toText());
+    }
 
     public static Automato leAutomatoDoArquivo() {
         Automato novoAutomato = new Automato();
+        //Estado.reiniciarChave();
         try {
-            BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\Pablo\\Google Drive\\ufmg\\ftc\\tp1\\target\\classes\\caso1.txt"));
+            BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\Pablo\\Google Drive\\ufmg\\ftc\\tp1\\target\\classes\\teste3.txt"));
             String linha = br.readLine();
             int quantidadeEstados = preencheEstados(novoAutomato, linha);
 
             linha = br.readLine();
+            while (linha.trim().isEmpty()) {
+                linha = br.readLine();
+            }
             preencheAlfabeto(novoAutomato, linha);
 
-            for (int i = 0; i < quantidadeEstados; i++) {
-                linha = br.readLine();
-                preencheTransicoes(novoAutomato, linha, i + 1);
-            }
             linha = br.readLine();
+            while (linha.trim().isEmpty()) {
+                linha = br.readLine();
+            }
+            for (int i = 0; i < quantidadeEstados; i++) {
+                preencheTransicoes(novoAutomato, linha, i);
+                linha = br.readLine();
+            }
+
+            while (linha.trim().isEmpty()) {
+                linha = br.readLine();
+            }
             preencheEstadoInicial(novoAutomato, linha);
 
             linha = br.readLine();
+            while (linha.trim().isEmpty()) {
+                linha = br.readLine();
+            }
             preencheEstadosFinais(novoAutomato, linha);
-            System.out.println(linha);
             br.close();
         } catch (IOException ioe) {
             ioe.printStackTrace();
@@ -50,7 +64,7 @@ public class App {
 
     private static void preencheEstadosFinais(Automato novoAutomato, String linha) {
         String[] estadosFinaisStr = linha.split(" ");
-        Set<Estado> estadosFinais = new HashSet<Estado>();
+        List<Estado> estadosFinais = new ArrayList<Estado>();
         for (String estadoFinalStr : estadosFinaisStr) {
             if (estadoFinalStr.contains(";")) {
                 break;
@@ -68,7 +82,7 @@ public class App {
 
     public static int preencheEstados(Automato aut, String estados) {
         String[] arrayEstados = estados.split(" ");
-        Set<Estado> conjuntoEstados = new HashSet<Estado>();
+        List<Estado> conjuntoEstados = new ArrayList<Estado>();
         for (String nome : arrayEstados) {
             if (nome.contains(";")) {
                 break;
@@ -94,7 +108,7 @@ public class App {
     }
 
     public static void preencheTransicoes(Automato aut, String linha, int numEstado) {
-        Estado estado = aut.getEstadoPeloNome(String.valueOf(numEstado));
+        Estado estado = aut.getEstadoPelaOrdem(numEstado);
 
         String[] estadosFinais = linha.split(" ");
 
