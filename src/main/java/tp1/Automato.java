@@ -47,9 +47,9 @@ public class Automato {
     }
 
     public Automato minimizaEstados() {
-        Set<List<Estado>> conjuntoMinimizavel = null;
-        Set<List<Estado>> resultadoParcial;// cria S0 com dois conjuntos : nao-finais e finais
-        resultadoParcial = new HashSet<List<Estado>>();
+        List<List<Estado>> conjuntoMinimizavel = null;
+        List<List<Estado>> resultadoParcial;// cria S0 com dois conjuntos : nao-finais e finais
+        resultadoParcial = new ArrayList<List<Estado>>();
         List<Estado> estadosNaoFinais = this.getEstados();
         estadosNaoFinais.removeAll(this.getEstadosFinais());
         resultadoParcial.add(estadosNaoFinais);
@@ -57,7 +57,7 @@ public class Automato {
 
         int contadorIteracoes = 0;
         while (!resultadoParcial.equals(conjuntoMinimizavel)) {
-            conjuntoMinimizavel = new HashSet<List<Estado>>(resultadoParcial);
+            conjuntoMinimizavel = new ArrayList<List<Estado>>(resultadoParcial);
             imprimeConjuntoMinimizavel(conjuntoMinimizavel, contadorIteracoes);
             resultadoParcial.clear();
 
@@ -74,7 +74,7 @@ public class Automato {
                     List<Estado> estadosAgrupados = new ArrayList<Estado>();
                     estadosAgrupados.add(estadoEscolhido);
                     // para cada d de C - {e}
-                    Set<Estado> estadosRestantesConj = new HashSet<Estado>(subConjunto);
+                    List<Estado> estadosRestantesConj = new ArrayList<Estado>(subConjunto);
                     estadosRestantesConj.remove(estadoEscolhido);
                     for (Estado estadoD : estadosRestantesConj) {
                         boolean agrupa = true;
@@ -125,7 +125,7 @@ public class Automato {
         return automatoSaida;
     }
 
-    private void imprimeConjuntoMinimizavel(Set<List<Estado>> conjuntoMinimizavel, int iteracao) {
+    private void imprimeConjuntoMinimizavel(List<List<Estado>> conjuntoMinimizavel, int iteracao) {
         StringBuilder conjuntosTextual = new StringBuilder();
         conjuntosTextual.append('S');
         conjuntosTextual.append(iteracao);
@@ -147,7 +147,7 @@ public class Automato {
         System.out.println(conjuntosTextual.toString());
     }
 
-    private List<Estado> criaEstadosDeConjuntos(Set<List<Estado>> conjuntos) {
+    private List<Estado> criaEstadosDeConjuntos(List<List<Estado>> conjuntos) {
         List<Estado> estados = new ArrayList<Estado>();
         for (List<Estado> estadoAgrupado : conjuntos) {
             Estado novoEstado = Estado.criaEstadoDeConjunto(estadoAgrupado);
@@ -191,8 +191,8 @@ public class Automato {
         return funcoesTransicao;
     }
 
-    private boolean isEstadosMesmoConjunto(Set<List<Estado>> conjuntoMinimizavel, Estado estadoAtingidoPorEscolhido, Estado estadoAtingidoPorD) {
-        Set<Estado> grupoEstados = new HashSet<Estado>();
+    private boolean isEstadosMesmoConjunto(List<List<Estado>> conjuntoMinimizavel, Estado estadoAtingidoPorEscolhido, Estado estadoAtingidoPorD) {
+        List<Estado> grupoEstados = new ArrayList<Estado>();
         grupoEstados.add(estadoAtingidoPorEscolhido);
         grupoEstados.add(estadoAtingidoPorD);
         for (List<Estado> estados : conjuntoMinimizavel) {
@@ -206,8 +206,8 @@ public class Automato {
 
     void retiraEstadosInatingiveis() {
         List<Estado> estados = new ArrayList<Estado>(this.getEstados());
-        Iterable<Simbolo> alfabeto = new HashSet<Simbolo>(this.getAlfabeto());
-        Set<Estado> estadosInatingiveis = new HashSet<Estado>(estados);
+        Iterable<Simbolo> alfabeto = new ArrayList<Simbolo>(this.getAlfabeto());
+        List<Estado> estadosInatingiveis = new ArrayList<Estado>(estados);
         estadosInatingiveis.remove(this.estadoInicial);
         while (!estadosInatingiveis.isEmpty()) {
             for (Estado estado : estados) {
