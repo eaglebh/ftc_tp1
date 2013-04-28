@@ -37,7 +37,6 @@ public class AutomatoImpl implements Automato {
 
     public Automato criaEquivalenteMinimizado() {
         EstadoImpl.reiniciarChave();
-        SimboloImpl.reiniciarChave();
         // elimina todos os estados inatingiveis
         this.retiraEstadosInatingiveis();
 
@@ -129,11 +128,11 @@ public class AutomatoImpl implements Automato {
             conjuntosTextual.append('{');
             Iterator<Estado> estadoIterator = conjunto.iterator();
             Estado estado = estadoIterator.next();
-            conjuntosTextual.append(estado);
+            conjuntosTextual.append(estado.getNome());
             while (estadoIterator.hasNext()) {
                 conjuntosTextual.append(',');
                 estado = estadoIterator.next();
-                conjuntosTextual.append(estado);
+                conjuntosTextual.append(estado.getNome());
             }
             conjuntosTextual.append('}');
         }
