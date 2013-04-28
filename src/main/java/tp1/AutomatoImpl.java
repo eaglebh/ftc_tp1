@@ -26,15 +26,6 @@ public class AutomatoImpl implements Automato {
         }
     }
 
-    private Estado extraiEstadoInicialDeEstados(Iterable<Estado> conjuntoMinimizavel, Estado estadoInicial) {
-        for (Estado estadoAgrupado : conjuntoMinimizavel) {
-            if (estadoAgrupado.contains(estadoInicial)) {
-                return estadoAgrupado;
-            }
-        }
-        return null;
-    }
-
     public Automato criaEquivalenteMinimizado() {
         EstadoImpl.reiniciarChave();
         // elimina todos os estados inatingiveis
@@ -119,6 +110,30 @@ public class AutomatoImpl implements Automato {
         return automatoSaida;
     }
 
+    private void retiraEstadosInatingiveis() {
+        List<Estado> estados = new ArrayList<Estado>(this.estados);
+        Iterable<Simbolo> alfabeto = new ArrayList<Simbolo>(this.alfabeto);
+        Collection<Estado> estadosInatingiveis = new ArrayList<Estado>(estados);
+        estadosInatingiveis.remove(this.estadoInicial);
+        while (!estadosInatingiveis.isEmpty()) {
+            for (Estado estado : estados) {
+                for (Simbolo simbolo : alfabeto) {
+                    Estado proximoEstado = this.aplicaFuncaoTransicao(estado, simbolo);
+                    if (proximoEstado != null) {
+                        estadosInatingiveis.remove(proximoEstado);
+                    }
+                }
+            }
+            estados.removeAll(estadosInatingiveis);
+            if (!estadosInatingiveis.isEmpty()) {
+                estadosInatingiveis.clear();
+                estadosInatingiveis.addAll(estados);
+                estadosInatingiveis.remove(this.estadoInicial);
+            }
+        }
+        this.setEstados(estados);
+    }
+
     private void imprimeConjuntoMinimizavel(Iterable<List<Estado>> conjuntoMinimizavel, int iteracao) {
         StringBuilder conjuntosTextual = new StringBuilder();
         conjuntosTextual.append('S');
@@ -139,6 +154,24 @@ public class AutomatoImpl implements Automato {
         conjuntosTextual.append('}');
 
         LOGGER.info(conjuntosTextual.toString());
+    }
+
+    private Estado aplicaFuncaoTransicao(Estado estado, Simbolo simbolo) {
+        return this.funcoesTransicao.get(new TransicaoImpl(estado, simbolo));
+    }
+
+    private boolean isEstadosConjuntosDiferentes(Iterable<List<Estado>> conjuntoMinimizavel,
+                                                 Estado estadoAtingidoPorEscolhido,
+                                                 Estado estadoAtingidoPorD) {
+        Collection<Estado> grupoEstados = new ArrayList<Estado>();
+        grupoEstados.add(estadoAtingidoPorEscolhido);
+        grupoEstados.add(estadoAtingidoPorD);
+        for (List<Estado> estados : conjuntoMinimizavel) {
+            if (estados.containsAll(grupoEstados)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private List<Estado> criaEstadosDeConjuntos(Iterable<List<Estado>> conjuntos) {
@@ -185,43 +218,13 @@ public class AutomatoImpl implements Automato {
         return funcoesTransicao;
     }
 
-    private boolean isEstadosConjuntosDiferentes(Iterable<List<Estado>> conjuntoMinimizavel,
-                                                 Estado estadoAtingidoPorEscolhido,
-                                                 Estado estadoAtingidoPorD) {
-        Collection<Estado> grupoEstados = new ArrayList<Estado>();
-        grupoEstados.add(estadoAtingidoPorEscolhido);
-        grupoEstados.add(estadoAtingidoPorD);
-        for (List<Estado> estados : conjuntoMinimizavel) {
-            if (estados.containsAll(grupoEstados)) {
-                return false;
+    private Estado extraiEstadoInicialDeEstados(Iterable<Estado> conjuntoMinimizavel, Estado estadoInicial) {
+        for (Estado estadoAgrupado : conjuntoMinimizavel) {
+            if (estadoAgrupado.contains(estadoInicial)) {
+                return estadoAgrupado;
             }
         }
-        return true;
-    }
-
-
-    private void retiraEstadosInatingiveis() {
-        List<Estado> estados = new ArrayList<Estado>(this.estados);
-        Iterable<Simbolo> alfabeto = new ArrayList<Simbolo>(this.alfabeto);
-        Collection<Estado> estadosInatingiveis = new ArrayList<Estado>(estados);
-        estadosInatingiveis.remove(this.estadoInicial);
-        while (!estadosInatingiveis.isEmpty()) {
-            for (Estado estado : estados) {
-                for (Simbolo simbolo : alfabeto) {
-                    Estado proximoEstado = this.aplicaFuncaoTransicao(estado, simbolo);
-                    if (proximoEstado != null) {
-                        estadosInatingiveis.remove(proximoEstado);
-                    }
-                }
-            }
-            estados.removeAll(estadosInatingiveis);
-            if (!estadosInatingiveis.isEmpty()) {
-                estadosInatingiveis.clear();
-                estadosInatingiveis.addAll(estados);
-                estadosInatingiveis.remove(this.estadoInicial);
-            }
-        }
-        this.setEstados(estados);
+        return null;
     }
 
     public void setEstados(List<Estado> estados) {
@@ -242,10 +245,6 @@ public class AutomatoImpl implements Automato {
 
     public void setFuncoesTransicao(Map<Transicao, Estado> funcoesTransicao) {
         this.funcoesTransicao = new HashMap<Transicao, Estado>(funcoesTransicao);
-    }
-
-    private Estado aplicaFuncaoTransicao(Estado estado, Simbolo simbolo) {
-        return this.funcoesTransicao.get(new TransicaoImpl(estado, simbolo));
     }
 
     public String toText() {
@@ -292,22 +291,22 @@ public class AutomatoImpl implements Automato {
             for (Simbolo simbolo : this.alfabeto) {
                 Transicao transicao = new TransicaoImpl(estado, simbolo);
                 Estado estadoDestino = this.funcoesTransicao.get(transicao);
-                transicoesStringBuilder.append(getyUMLDeEstado(estado.toString()));
+                transicoesStringBuilder.append(getYUMLDeEstado(estado.toString()));
                 transicoesStringBuilder.append('-');
                 transicoesStringBuilder.append(simbolo.getNome());
                 transicoesStringBuilder.append('>');
-                transicoesStringBuilder.append(getyUMLDeEstado(estadoDestino.toString()));
+                transicoesStringBuilder.append(getYUMLDeEstado(estadoDestino.toString()));
                 transicoesStringBuilder.append("\n");
             }
         }
 
-        transicoesStringBuilder.append(getyUMLDeEstado("start"));
+        transicoesStringBuilder.append(getYUMLDeEstado("start"));
         transicoesStringBuilder.append("->");
-        transicoesStringBuilder.append(getyUMLDeEstado(this.estadoInicial.toString()));
+        transicoesStringBuilder.append(getYUMLDeEstado(this.estadoInicial.toString()));
         transicoesStringBuilder.append("\n");
 
         for (Estado estado : this.estadosFinais) {
-            transicoesStringBuilder.append(getyUMLDeEstado(estado.toString()));
+            transicoesStringBuilder.append(getYUMLDeEstado(estado.toString()));
             transicoesStringBuilder.append("->");
             transicoesStringBuilder.append("(end)");
             transicoesStringBuilder.append("\n");
@@ -316,7 +315,7 @@ public class AutomatoImpl implements Automato {
         return transicoesStringBuilder.toString();
     }
 
-    private String getyUMLDeEstado(String nome) {
+    private String getYUMLDeEstado(String nome) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append('(');
         stringBuilder.append(nome);
@@ -334,5 +333,31 @@ public class AutomatoImpl implements Automato {
             }
         }
         return estado;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AutomatoImpl automato = (AutomatoImpl) o;
+
+        if (!alfabeto.equals(automato.alfabeto)) return false;
+        if (!estadoInicial.equals(automato.estadoInicial)) return false;
+        if (!estados.equals(automato.estados)) return false;
+        if (!estadosFinais.equals(automato.estadosFinais)) return false;
+        if (!funcoesTransicao.equals(automato.funcoesTransicao)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = estados.hashCode();
+        result = 31 * result + estadosFinais.hashCode();
+        result = 31 * result + alfabeto.hashCode();
+        result = 31 * result + estadoInicial.hashCode();
+        result = 31 * result + funcoesTransicao.hashCode();
+        return result;
     }
 }

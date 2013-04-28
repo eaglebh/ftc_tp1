@@ -7,14 +7,25 @@ public class EstadoImpl implements Estado {
 
     private static int chaveAtualGerada = 0;
 
-    private static synchronized int gerarChave() {
-        ++chaveAtualGerada;
-        return chaveAtualGerada;
-    }
-
     private final int chave;
+
     private final String nome;
     private List<Estado> conjunto = null;
+
+    public static Estado criaEstado(String nome) {
+        return new EstadoImpl(nome);
+    }
+
+    public static Estado criaEstadoDeConjunto(List<Estado> conjunto) {
+        Estado estado;
+        if (conjunto.size() > 1) {
+            estado = new EstadoImpl(conjunto);
+        } else {
+            estado = new EstadoImpl(conjunto.get(0).getNome());
+        }
+
+        return estado;
+    }
 
     private EstadoImpl(String nome) {
         this.chave = gerarChave();
@@ -35,23 +46,21 @@ public class EstadoImpl implements Estado {
         this.conjunto = new ArrayList<Estado>(conjunto);
     }
 
-    public static Estado criaEstado(String nome) {
-        return new EstadoImpl(nome);
-    }
-
-    public static Estado criaEstadoDeConjunto(List<Estado> conjunto) {
-        Estado estado;
-        if (conjunto.size() > 1) {
-            estado = new EstadoImpl(conjunto);
-        } else {
-            estado = new EstadoImpl(conjunto.get(0).getNome());
-        }
-
-        return estado;
+    private static synchronized int gerarChave() {
+        ++chaveAtualGerada;
+        return chaveAtualGerada;
     }
 
     public String getNome() {
         return nome;
+    }
+
+    public Estado getEstadoRepresentativo() {
+        return (this.conjunto == null || this.conjunto.isEmpty()) ? this : this.conjunto.iterator().next();
+    }
+
+    public static void reiniciarChave() {
+        chaveAtualGerada = 0;
     }
 
     public boolean contains(Estado estado) {
@@ -84,13 +93,5 @@ public class EstadoImpl implements Estado {
     @Override
     public String toString() {
         return String.valueOf(chave);
-    }
-
-    public Estado getEstadoRepresentativo() {
-        return (this.conjunto == null || this.conjunto.isEmpty()) ? this : this.conjunto.iterator().next();
-    }
-
-    public static void reiniciarChave() {
-        chaveAtualGerada = 0;
     }
 }

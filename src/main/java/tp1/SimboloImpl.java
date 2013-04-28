@@ -21,4 +21,16 @@ public class SimboloImpl implements Simbolo {
     public String toString() {
         return nome;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SimboloImpl simbolo = (SimboloImpl) o;
+
+        if (!nome.equals(simbolo.nome)) return false;
+
+        return true;
+    }
 }

@@ -35,65 +35,13 @@ public class App {
         LOGGER.addHandler(consoleHandler);
     }
 
-    private static void imprimirYUML(Automato automato, boolean habilitado) {
-        if (habilitado) {
-            LOGGER.info(automato.toYUML());
-        }
-    }
-
-    private static void imprimirTexto(Automato automato, boolean habilitado) {
-        if (habilitado) {
-            LOGGER.info("\n" + automato.toText());
-        }
-    }
-
-    private static void gravarArquivoAutomato(Automato automato) {
-        File file = new File("output");
-
-        //cria arquivo se nao existir
-        try {
-            if (!file.createNewFile()) {
-                LOGGER.warning("Arquivo de saida ja existe e sera sobrescrito.");
-            }
-        } catch (IOException e) {
-            LOGGER.severe("Não conseguiu escrever arquivo de saida. Erro: " + e.getLocalizedMessage());
-        }
-
-        try {
-            FileWriter fw = new FileWriter(file.getAbsoluteFile());
-            BufferedWriter bw = new BufferedWriter(fw);
-            bw.write(automato.toText());
-            bw.close();
-        } catch (IOException e) {
-            LOGGER.severe("Problema ao escrever em arquivo. Erro: " + e.getLocalizedMessage());
-        }
-    }
-
     private static String recuperaArquivoEntrada(String[] args) {
         String filePath = recuperaParametro(args, 0);
         return filePath == null ? "input" : filePath;
     }
 
-    private static boolean recuperaImprimirTexto(String[] args) {
-        String param = recuperaParametro(args, 1);
-        return Boolean.parseBoolean(param);
-    }
-
-    private static boolean recuperaImprimirYUML(String[] args) {
-        String param = recuperaParametro(args, 1);
-        return Boolean.parseBoolean(param);
-    }
-
-    private static String recuperaParametro(String[] args, int indice) {
-        String parametro = null;
-        if (args.length > indice) {
-            parametro = args[indice];
-        }
-        return parametro;
-    }
-
-
-    private static Automato leAutomatoDoArquivo(String filePath) {
+    protected static Automato leAutomatoDoArquivo(String filePath) {
+        EstadoImpl.reiniciarChave();
         Automato novoAutomato = new AutomatoImpl();
 
         try {
@@ -125,30 +73,65 @@ public class App {
         return novoAutomato;
     }
 
+    private static void imprimirTexto(Automato automato, boolean habilitado) {
+        if (habilitado) {
+            LOGGER.info("\n" + automato.toText());
+        }
+    }
+
+    private static boolean recuperaImprimirTexto(String[] args) {
+        String param = recuperaParametro(args, 1);
+        return Boolean.parseBoolean(param);
+    }
+
+    private static void imprimirYUML(Automato automato, boolean habilitado) {
+        if (habilitado) {
+            LOGGER.info(automato.toYUML());
+        }
+    }
+
+    private static boolean recuperaImprimirYUML(String[] args) {
+        String param = recuperaParametro(args, 1);
+        return Boolean.parseBoolean(param);
+    }
+
+    private static void gravarArquivoAutomato(Automato automato) {
+        File file = new File("output");
+
+        //cria arquivo se nao existir
+        try {
+            if (!file.createNewFile()) {
+                LOGGER.warning("Arquivo de saida ja existe e sera sobrescrito.");
+            }
+        } catch (IOException e) {
+            LOGGER.severe("Não conseguiu escrever arquivo de saida. Erro: " + e.getLocalizedMessage());
+        }
+
+        try {
+            FileWriter fw = new FileWriter(file.getAbsoluteFile());
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(automato.toText());
+            bw.close();
+        } catch (IOException e) {
+            LOGGER.severe("Problema ao escrever em arquivo. Erro: " + e.getLocalizedMessage());
+        }
+    }
+
+
+    private static String recuperaParametro(String[] args, int indice) {
+        String parametro = null;
+        if (args.length > indice) {
+            parametro = args[indice];
+        }
+        return parametro;
+    }
+
     private static String proximaLinhaComTexto(BufferedReader br) throws IOException {
         String linha = br.readLine();
         while (linha.trim().isEmpty()) {
             linha = br.readLine();
         }
         return linha;
-    }
-
-    private static void preencheEstadosFinais(Automato novoAutomato, String linha) {
-        String[] estadosFinaisStr = linha.split(" ");
-        List<Estado> estadosFinais = new ArrayList<Estado>();
-        for (String estadoFinalStr : estadosFinaisStr) {
-            if (estadoFinalStr.contains(";")) {
-                break;
-            }
-            Estado estadoFinal = novoAutomato.recuperaEstadoPeloNome(estadoFinalStr);
-            estadosFinais.add(estadoFinal);
-        }
-        novoAutomato.setEstadosFinais(estadosFinais);
-    }
-
-    private static void preencheEstadoInicial(Automato novoAutomato, String linha) {
-        Estado estadoInicial = novoAutomato.recuperaEstadoPeloNome(linha.split(" ")[0]);
-        novoAutomato.setEstadoInicial(estadoInicial);
     }
 
     private static List<Estado> recuperaEstadosDeTexto(String estados) {
@@ -171,4 +154,21 @@ public class App {
         aut.setAlfabeto(conjuntoAlfabeto);
     }
 
+    private static void preencheEstadoInicial(Automato novoAutomato, String linha) {
+        Estado estadoInicial = novoAutomato.recuperaEstadoPeloNome(linha.split(" ")[0]);
+        novoAutomato.setEstadoInicial(estadoInicial);
+    }
+
+    private static void preencheEstadosFinais(Automato novoAutomato, String linha) {
+        String[] estadosFinaisStr = linha.split(" ");
+        List<Estado> estadosFinais = new ArrayList<Estado>();
+        for (String estadoFinalStr : estadosFinaisStr) {
+            if (estadoFinalStr.contains(";")) {
+                break;
+            }
+            Estado estadoFinal = novoAutomato.recuperaEstadoPeloNome(estadoFinalStr);
+            estadosFinais.add(estadoFinal);
+        }
+        novoAutomato.setEstadosFinais(estadosFinais);
+    }
 }

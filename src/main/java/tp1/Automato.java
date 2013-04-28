@@ -17,13 +17,13 @@ public interface Automato {
 
     public Estado recuperaEstadoPeloNome(String nome);
 
-    public void setEstadosFinais(List<Estado> estados);
-
-    public void setEstadoInicial(Estado estado);
-
     public void setEstados(List<Estado> estados);
 
     public void setAlfabeto(List<Simbolo> alfabeto);
+
+    public void setEstadosFinais(List<Estado> estados);
+
+    public void setEstadoInicial(Estado estado);
 
     public void setFuncoesTransicao(Map<Transicao, Estado> funcoesTransicao);
 }
