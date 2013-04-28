@@ -4,31 +4,79 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.logging.*;
 
 public class App {
 
+    private static final Logger LOGGER = Logger.getLogger("FTC-Tp1");
+
     public static void main(String[] args) {
-        Set<Set<Estado>> resultadoParcial;
-        Automato automatoEntrada = leAutomatoDoArquivo();
+        configuraLogger();
 
-        // elimina todos os estados inatingiveis
-        automatoEntrada.retiraEstadosInatingiveis();
+        String filePath = recuperaArquivoEntrada(args);
 
-        Estado.reiniciarChave();
-        Automato automatoSaida = automatoEntrada.minimizaEstados();
+        Automato automatoEntrada = leAutomatoDoArquivo(filePath);
 
-        System.out.print(automatoSaida.toText());
-        System.out.println(automatoSaida.toyUML());
+        Automato automatoSaida = automatoEntrada.criaEquivalenteMinimizado();
+
+        imprimirTexto(automatoSaida, recuperaImprimirTexto(args));
+        imprimirYUML(automatoSaida, recuperaImprimirYUML(args));
     }
 
-    public static Automato leAutomatoDoArquivo() {
-        Automato novoAutomato = new Automato();
+    private static void configuraLogger() {
+        LOGGER.setUseParentHandlers(false);
+        Handler consoleHandler = new ConsoleHandler();
+        consoleHandler.setFormatter(new Formatter() {
+            @Override
+            public String format(LogRecord record) {
+                return record.getMessage()+ "\n";
+            }
+        });
+        LOGGER.addHandler(consoleHandler);
+    }
+
+    private static void imprimirYUML(Automato automatoSaida, boolean habilitado) {
+        if (habilitado) {
+            LOGGER.info(automatoSaida.toYUML());
+        }
+    }
+
+    private static void imprimirTexto(Automato automatoSaida, boolean habilitado) {
+        if (habilitado) {
+            LOGGER.info(automatoSaida.toText());
+        }
+    }
+
+    private static String recuperaArquivoEntrada(String[] args) {
+        String filePath = recuperaParametro(args, 0);
+        return filePath == null ? "input" : filePath;
+    }
+
+    private static boolean recuperaImprimirTexto(String[] args) {
+        String param = recuperaParametro(args, 1);
+        return Boolean.parseBoolean(param);
+    }
+
+    private static boolean recuperaImprimirYUML(String[] args) {
+        String param = recuperaParametro(args, 1);
+        return Boolean.parseBoolean(param);
+    }
+
+    private static String recuperaParametro(String[] args, int indice) {
+        String parametro = null;
+        if (args.length > indice) {
+            parametro = args[indice];
+        }
+        return parametro;
+    }
+
+
+    public static Automato leAutomatoDoArquivo(String filePath) {
+        Automato novoAutomato = new AutomatoImpl();
 
         try {
-            BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\Pablo\\Google Drive\\ufmg\\ftc\\tp1\\target\\classes\\teste3.txt"));
+            BufferedReader br = new BufferedReader(new FileReader(filePath));
             String linha = br.readLine();
             int quantidadeEstados = preencheEstados(novoAutomato, linha);
 
@@ -43,7 +91,7 @@ public class App {
                 linha = br.readLine();
             }
             for (int i = 0; i < quantidadeEstados; i++) {
-                preencheTransicoes(novoAutomato, linha, i);
+                novoAutomato.preencheTransicoes(linha, i);
                 linha = br.readLine();
             }
 
@@ -59,7 +107,7 @@ public class App {
             preencheEstadosFinais(novoAutomato, linha);
             br.close();
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            LOGGER.severe("Erro na leitura do arquivo " + filePath);
         }
 
         return novoAutomato;
@@ -84,13 +132,10 @@ public class App {
     }
 
     public static int preencheEstados(Automato aut, String estados) {
-        String[] arrayEstados = estados.split(" ");
+        String[] arrayEstados = estados.replace(';', ' ').trim().split(" ");
         List<Estado> conjuntoEstados = new ArrayList<Estado>();
         for (String nome : arrayEstados) {
-            if (nome.contains(";")) {
-                break;
-            }
-            Estado novoEstado = Estado.criaEstado(nome);
+            Estado novoEstado = EstadoImpl.criaEstado(nome);
             conjuntoEstados.add(novoEstado);
         }
         aut.setEstados(conjuntoEstados);
@@ -98,29 +143,13 @@ public class App {
     }
 
     public static void preencheAlfabeto(Automato aut, String alfabeto) {
-        String[] arraySimbolos = alfabeto.split(" ");
+        String[] arraySimbolos = alfabeto.replace(';', ' ').trim().split(" ");
         List<Simbolo> conjuntoAlfabeto = new ArrayList<Simbolo>();
         for (String simbolo : arraySimbolos) {
-            if (simbolo.contains(";")) {
-                break;
-            }
-            Simbolo novoSimbolo = new Simbolo(simbolo);
+            Simbolo novoSimbolo = new SimboloImpl(simbolo);
             conjuntoAlfabeto.add(novoSimbolo);
         }
         aut.setAlfabeto(conjuntoAlfabeto);
-    }
-
-    public static void preencheTransicoes(Automato aut, String linha, int numEstado) {
-        Estado estado = aut.getEstadoPelaOrdem(numEstado);
-
-        String[] estadosFinais = linha.split(" ");
-
-        for (int count = 0; count < aut.getAlfabeto().size(); count++) {
-            Estado estadoFinal = aut.getEstadoPeloNome(estadosFinais[count]);
-            Simbolo simbolo1 = aut.getAlfabeto().get(count);
-            Transicao transicao = new Transicao(estado, simbolo1);
-            aut.getFuncoesTransicao().put(transicao, estadoFinal);
-        }
     }
 
 }
