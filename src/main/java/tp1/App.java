@@ -11,6 +11,9 @@ public class App {
 
     public static void main(String[] args) {
         configuraLogger();
+        if(args.length < 2){
+            LOGGER.info("Uso: java tp1.App arquivoEntrada [imprimir_resultado] [imprimir_yUML]\n");
+        }
 
         String filePath = recuperaArquivoEntrada(args);
 
