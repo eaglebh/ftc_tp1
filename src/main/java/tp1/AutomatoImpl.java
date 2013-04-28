@@ -15,15 +15,13 @@ public class AutomatoImpl implements Automato {
         this.funcoesTransicao = new HashMap<Transicao, Estado>();
     }
 
-    public void preencheTransicoesParaEstado(String linha, int numEstado) {
-        Estado estado = getEstadoPelaOrdem(numEstado);
-
+    public void preencheTransicoesParaEstado(String linha, Estado estadoOrigem) {
         String[] estadosDestino = linha.replace(';', ' ').trim().split(" ");
 
         for (int count = 0; count < this.alfabeto.size(); count++) {
             Estado estadoFinal = recuperaEstadoPeloNome(estadosDestino[count]);
-            Simbolo simbolo1 = this.alfabeto.get(count);
-            Transicao transicao = new TransicaoImpl(estado, simbolo1);
+            Simbolo simbolo = this.alfabeto.get(count);
+            Transicao transicao = new TransicaoImpl(estadoOrigem, simbolo);
             this.funcoesTransicao.put(transicao, estadoFinal);
         }
     }
@@ -37,10 +35,6 @@ public class AutomatoImpl implements Automato {
         return null;
     }
 
-    private Estado getEstadoPelaOrdem(int indice) {
-        return (indice < 0 || indice >= this.estados.size()) ? null : this.estados.get(indice);
-    }
-
     public Automato criaEquivalenteMinimizado() {
         EstadoImpl.reiniciarChave();
         SimboloImpl.reiniciarChave();
@@ -50,7 +44,7 @@ public class AutomatoImpl implements Automato {
         List<List<Estado>> conjuntoMinimizavel = null;
         List<List<Estado>> resultadoParcial;// cria S0 com dois conjuntos : nao-finais e finais
         resultadoParcial = new ArrayList<List<Estado>>();
-        List<Estado> estadosNaoFinais = this.estados;
+        List<Estado> estadosNaoFinais = new ArrayList<Estado>(this.estados);
         estadosNaoFinais.removeAll(this.estadosFinais);
         resultadoParcial.add(estadosNaoFinais);
         resultadoParcial.add(this.estadosFinais);

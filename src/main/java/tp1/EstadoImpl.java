@@ -40,7 +40,14 @@ public class EstadoImpl implements Estado {
     }
 
     public static Estado criaEstadoDeConjunto(List<Estado> conjunto) {
-        return new EstadoImpl(conjunto);
+        Estado estado;
+        if (conjunto.size() > 1) {
+            estado = new EstadoImpl(conjunto);
+        } else {
+            estado = new EstadoImpl(conjunto.get(0).getNome());
+        }
+
+        return estado;
     }
 
     public String getNome() {
@@ -48,12 +55,30 @@ public class EstadoImpl implements Estado {
     }
 
     public boolean contains(Estado estado) {
-        return (this.conjunto != null) && this.conjunto.contains(estado);
+        boolean contains;
+
+        if (this.conjunto == null) {
+            contains = this.equals(estado);
+        } else {
+            contains = this.conjunto.contains(estado);
+        }
+
+        return contains;
     }
 
     @Override
     public int hashCode() {
-        return chave;
+        return nome.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Estado) {
+            Estado other = (Estado) obj;
+            return this.nome.equals(other.getNome());
+        } else {
+            return false;
+        }
     }
 
     @Override

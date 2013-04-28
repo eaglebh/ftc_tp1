@@ -98,40 +98,39 @@ public class App {
 
         try {
             BufferedReader br = new BufferedReader(new FileReader(filePath));
-            String linha = br.readLine();
-            int quantidadeEstados = preencheEstados(novoAutomato, linha);
 
-            linha = br.readLine();
-            while (linha.trim().isEmpty()) {
-                linha = br.readLine();
-            }
+            String linha = proximaLinhaComTexto(br);
+            List<Estado> estados = recuperaEstadosDeTexto(linha);
+            novoAutomato.setEstados(estados);
+
+            linha = proximaLinhaComTexto(br);
             preencheAlfabeto(novoAutomato, linha);
 
-            linha = br.readLine();
-            while (linha.trim().isEmpty()) {
-                linha = br.readLine();
-            }
-            for (int i = 0; i < quantidadeEstados; i++) {
-                novoAutomato.preencheTransicoesParaEstado(linha, i);
-                linha = br.readLine();
+            for (Estado estado : estados) {
+                linha = proximaLinhaComTexto(br);
+                novoAutomato.preencheTransicoesParaEstado(linha, estado);
             }
 
-            while (linha.trim().isEmpty()) {
-                linha = br.readLine();
-            }
+            linha = proximaLinhaComTexto(br);
             preencheEstadoInicial(novoAutomato, linha);
 
-            linha = br.readLine();
-            while (linha.trim().isEmpty()) {
-                linha = br.readLine();
-            }
+            linha = proximaLinhaComTexto(br);
             preencheEstadosFinais(novoAutomato, linha);
+
             br.close();
         } catch (IOException ioe) {
             LOGGER.severe("Erro na leitura do arquivo " + filePath);
         }
 
         return novoAutomato;
+    }
+
+    private static String proximaLinhaComTexto(BufferedReader br) throws IOException {
+        String linha = br.readLine();
+        while (linha.trim().isEmpty()) {
+            linha = br.readLine();
+        }
+        return linha;
     }
 
     private static void preencheEstadosFinais(Automato novoAutomato, String linha) {
@@ -152,15 +151,14 @@ public class App {
         novoAutomato.setEstadoInicial(estadoInicial);
     }
 
-    private static int preencheEstados(Automato aut, String estados) {
+    private static List<Estado> recuperaEstadosDeTexto(String estados) {
         String[] arrayEstados = estados.replace(';', ' ').trim().split(" ");
         List<Estado> conjuntoEstados = new ArrayList<Estado>();
         for (String nome : arrayEstados) {
             Estado novoEstado = EstadoImpl.criaEstado(nome);
             conjuntoEstados.add(novoEstado);
         }
-        aut.setEstados(conjuntoEstados);
-        return conjuntoEstados.size();
+        return conjuntoEstados;
     }
 
     private static void preencheAlfabeto(Automato aut, String alfabeto) {

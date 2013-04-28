@@ -23,7 +23,7 @@ public class SimboloImpl implements Simbolo {
 
     @Override
     public int hashCode() {
-        return chave;
+        return nome.hashCode();
     }
 
     @Override

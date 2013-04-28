@@ -13,7 +13,7 @@ public interface Automato {
 
     public String toYUML();
 
-    public void preencheTransicoesParaEstado(String linha, int indiceEstado);
+    public void preencheTransicoesParaEstado(String linha, Estado estadoOrigem);
 
     public Estado recuperaEstadoPeloNome(String nome);
 
