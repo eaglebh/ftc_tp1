@@ -12,8 +12,8 @@ public class EstadoImpl implements Estado {
         return chaveAtualGerada;
     }
 
-    private int chave;
-    private String nome;
+    private final int chave;
+    private final String nome;
     private List<Estado> conjunto = null;
 
     private EstadoImpl(String nome) {

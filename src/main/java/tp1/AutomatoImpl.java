@@ -15,13 +15,13 @@ public class AutomatoImpl implements Automato {
         this.funcoesTransicao = new HashMap<Transicao, Estado>();
     }
 
-    public void preencheTransicoes(String linha, int numEstado) {
+    public void preencheTransicoesParaEstado(String linha, int numEstado) {
         Estado estado = getEstadoPelaOrdem(numEstado);
 
-        String[] estadosFinais = linha.replace(';', ' ').trim().split(" ");
+        String[] estadosDestino = linha.replace(';', ' ').trim().split(" ");
 
         for (int count = 0; count < this.alfabeto.size(); count++) {
-            Estado estadoFinal = getEstadoPeloNome(estadosFinais[count]);
+            Estado estadoFinal = recuperaEstadoPeloNome(estadosDestino[count]);
             Simbolo simbolo1 = this.alfabeto.get(count);
             Transicao transicao = new TransicaoImpl(estado, simbolo1);
             this.funcoesTransicao.put(transicao, estadoFinal);
@@ -82,7 +82,7 @@ public class AutomatoImpl implements Automato {
                             // verifique se e vai para o mesmo conjunto dos outros do mesmo estado
                             Estado estadoAtingidoPorEscolhido = this.aplicaFuncaoTransicao(estadoEscolhido, simbolo);
                             Estado estadoAtingidoPorD = this.aplicaFuncaoTransicao(estadoD, simbolo);
-                            if (!isEstadosMesmoConjunto(conjuntoMinimizavel, estadoAtingidoPorEscolhido, estadoAtingidoPorD)) {
+                            if (isEstadosConjuntosDiferentes(conjuntoMinimizavel, estadoAtingidoPorEscolhido, estadoAtingidoPorD)) {
                                 // senao, deve fazer parte de outro conjunto novo
                                 agrupa = false;
                                 break;
@@ -192,18 +192,18 @@ public class AutomatoImpl implements Automato {
         return funcoesTransicao;
     }
 
-    private boolean isEstadosMesmoConjunto(Iterable<List<Estado>> conjuntoMinimizavel,
-                                           Estado estadoAtingidoPorEscolhido,
-                                           Estado estadoAtingidoPorD) {
+    private boolean isEstadosConjuntosDiferentes(Iterable<List<Estado>> conjuntoMinimizavel,
+                                                 Estado estadoAtingidoPorEscolhido,
+                                                 Estado estadoAtingidoPorD) {
         Collection<Estado> grupoEstados = new ArrayList<Estado>();
         grupoEstados.add(estadoAtingidoPorEscolhido);
         grupoEstados.add(estadoAtingidoPorD);
         for (List<Estado> estados : conjuntoMinimizavel) {
             if (estados.containsAll(grupoEstados)) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
 
@@ -287,9 +287,9 @@ public class AutomatoImpl implements Automato {
         }
 
         return estadosStringBuilder.toString() + "; //estados\n" +
-            alfabetoStringBuilder + "; //alfabeto\n" +
-            funcoesTransicaoStringBuilder + "; //transicoes\n" +
-            estadoInicial + "; //estado inicial\n" +
+            alfabetoStringBuilder + "; //alfabeto\n\n" +
+            funcoesTransicaoStringBuilder + "; //transicoes\n\n" +
+            this.estadoInicial.toString() + " ; //estado inicial\n" +
             estadosFinaisStringBuilder + "; //estados finais";
     }
 
@@ -332,7 +332,7 @@ public class AutomatoImpl implements Automato {
         return stringBuilder.toString();
     }
 
-    public Estado getEstadoPeloNome(String nomeEstado) {
+    public Estado recuperaEstadoPeloNome(String nomeEstado) {
         Estado estado = null;
         for (Estado est : this.estados) {
             if (est.getNome().equals(nomeEstado)) {

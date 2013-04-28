@@ -4,8 +4,8 @@ package tp1;
  * @author Pablo
  */
 public class TransicaoImpl implements Transicao {
-    private Estado estado;
-    private Simbolo simbolo;
+    private final Estado estado;
+    private final Simbolo simbolo;
 
     public TransicaoImpl(Estado estado, Simbolo simbolo) {
         this.estado = estado;

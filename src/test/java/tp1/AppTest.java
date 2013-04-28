@@ -34,7 +34,5 @@ public class AppTest
     public void testApp()
     {
         assertTrue( true );
-        System.out.println("Working Directory = " +
-                              System.getProperty("user.dir"));
     }
 }

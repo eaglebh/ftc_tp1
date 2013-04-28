@@ -13,9 +13,9 @@ public interface Automato {
 
     public String toYUML();
 
-    public void preencheTransicoes(String linha, int indiceEstado);
+    public void preencheTransicoesParaEstado(String linha, int indiceEstado);
 
-    public Estado getEstadoPeloNome(String nome);
+    public Estado recuperaEstadoPeloNome(String nome);
 
     public void setEstadosFinais(List<Estado> estados);
 

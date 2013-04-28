@@ -9,8 +9,8 @@ public class SimboloImpl implements Simbolo {
         return chaveAtualGerada;
     }
 
-    private int chave;
-    private String nome;
+    private final int chave;
+    private final String nome;
 
     public SimboloImpl(String nome) {
         this.chave = gerarChave();

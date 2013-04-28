@@ -1,8 +1,6 @@
 package tp1;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.*;
@@ -22,6 +20,7 @@ public class App {
 
         imprimirTexto(automatoSaida, recuperaImprimirTexto(args));
         imprimirYUML(automatoSaida, recuperaImprimirYUML(args));
+        gravarArquivoAutomato(automatoSaida);
     }
 
     private static void configuraLogger() {
@@ -30,21 +29,43 @@ public class App {
         consoleHandler.setFormatter(new Formatter() {
             @Override
             public String format(LogRecord record) {
-                return record.getMessage()+ "\n";
+                return record.getMessage() + "\n";
             }
         });
         LOGGER.addHandler(consoleHandler);
     }
 
-    private static void imprimirYUML(Automato automatoSaida, boolean habilitado) {
+    private static void imprimirYUML(Automato automato, boolean habilitado) {
         if (habilitado) {
-            LOGGER.info(automatoSaida.toYUML());
+            LOGGER.info(automato.toYUML());
         }
     }
 
-    private static void imprimirTexto(Automato automatoSaida, boolean habilitado) {
+    private static void imprimirTexto(Automato automato, boolean habilitado) {
         if (habilitado) {
-            LOGGER.info(automatoSaida.toText());
+            LOGGER.info("\n" + automato.toText());
+        }
+    }
+
+    private static void gravarArquivoAutomato(Automato automato) {
+        File file = new File("output");
+
+        //cria arquivo se nao existir
+        try {
+            if (!file.createNewFile()) {
+                LOGGER.warning("Arquivo de saida ja existe e sera sobrescrito.");
+            }
+        } catch (IOException e) {
+            LOGGER.severe("Não conseguiu escrever arquivo de saida. Erro: " + e.getLocalizedMessage());
+        }
+
+        try {
+            FileWriter fw = new FileWriter(file.getAbsoluteFile());
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(automato.toText());
+            bw.close();
+        } catch (IOException e) {
+            LOGGER.severe("Problema ao escrever em arquivo. Erro: " + e.getLocalizedMessage());
         }
     }
 
@@ -72,7 +93,7 @@ public class App {
     }
 
 
-    public static Automato leAutomatoDoArquivo(String filePath) {
+    private static Automato leAutomatoDoArquivo(String filePath) {
         Automato novoAutomato = new AutomatoImpl();
 
         try {
@@ -91,7 +112,7 @@ public class App {
                 linha = br.readLine();
             }
             for (int i = 0; i < quantidadeEstados; i++) {
-                novoAutomato.preencheTransicoes(linha, i);
+                novoAutomato.preencheTransicoesParaEstado(linha, i);
                 linha = br.readLine();
             }
 
@@ -120,18 +141,18 @@ public class App {
             if (estadoFinalStr.contains(";")) {
                 break;
             }
-            Estado estadoFinal = novoAutomato.getEstadoPeloNome(estadoFinalStr);
+            Estado estadoFinal = novoAutomato.recuperaEstadoPeloNome(estadoFinalStr);
             estadosFinais.add(estadoFinal);
         }
         novoAutomato.setEstadosFinais(estadosFinais);
     }
 
     private static void preencheEstadoInicial(Automato novoAutomato, String linha) {
-        Estado estadoInicial = novoAutomato.getEstadoPeloNome(linha.split(" ")[0]);
+        Estado estadoInicial = novoAutomato.recuperaEstadoPeloNome(linha.split(" ")[0]);
         novoAutomato.setEstadoInicial(estadoInicial);
     }
 
-    public static int preencheEstados(Automato aut, String estados) {
+    private static int preencheEstados(Automato aut, String estados) {
         String[] arrayEstados = estados.replace(';', ' ').trim().split(" ");
         List<Estado> conjuntoEstados = new ArrayList<Estado>();
         for (String nome : arrayEstados) {
@@ -142,7 +163,7 @@ public class App {
         return conjuntoEstados.size();
     }
 
-    public static void preencheAlfabeto(Automato aut, String alfabeto) {
+    private static void preencheAlfabeto(Automato aut, String alfabeto) {
         String[] arraySimbolos = alfabeto.replace(';', ' ').trim().split(" ");
         List<Simbolo> conjuntoAlfabeto = new ArrayList<Simbolo>();
         for (String simbolo : arraySimbolos) {
